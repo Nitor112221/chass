@@ -17,9 +17,11 @@ public class Bishop extends Piece {
 
     @Override
     public boolean canMove(int row, int col, int row1, int col1, ArrayList<ArrayList<Piece>> field, Piece voidPiece) {
+        if (! (0 <= row && row < 8 && 0 <= col && col < 8 && 0 <= row1 && row1 < 8 && 0 <= col1 && col1 < 8)) return false;
         if (!(Math.abs(row - row1) == Math.abs(col - col1))) return false;
         if (row - col == row1 - col1) {
             int step = (row1 >= row) ? 1 : -1;
+            step = (row1 == row) ? 0 : step;
             for (int r = row + step; r < row1; r += step) {
                 int c = col - row + r;
                 if (! field.get(r).get(c).equals(voidPiece)) return false;
@@ -28,6 +30,7 @@ public class Bishop extends Piece {
         }
         if (row + col == row1 + col1) {
             int step = (row1 >= row) ? 1 : -1;
+            step = (row1 == row) ? 0 : step;
             for (int r = row + step; r < row1; r += step) {
                 int c = row + col - r;
                 if (! field.get(r).get(c).equals(voidPiece)) return false;

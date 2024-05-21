@@ -82,7 +82,13 @@ public class Board {
             if (!piece.canAttack(row, col, row1, col1, field, voidPiece)) return false;
         } else return false;
         field.get(row).set(col, voidPiece);
+        Piece p = field.get(row1).get(col1);
         field.get(row1).set(col1, piece);
+        if (isCheck(color)) {
+            field.get(row).set(col, piece);
+            field.get(row1).set(col1, p);
+            return false;
+        }
         color = Main.opponent(color);
         return true;
     }
@@ -154,8 +160,87 @@ public class Board {
         return true;
     }
 
-    public int current_player_color() {
+    public int currentPlayerColor() {
         return color;
+    }
+    public boolean castling0() {
+        int row = (currentPlayerColor() == Main.WHITE) ? 0 : 7;
+        if (! (field.get(row).get(4) instanceof King && field.get(row).get(0) instanceof Rook)) return false;
+        if (! (field.get(row).get(4).getColor() == field.get(row).get(0).getColor())) return false;
+        if (! field.get(row).get(0).canMove(row, 0, row, 3, field, voidPiece)) return false;
+        Piece rc = field.get(row).get(0);
+        Piece kc = field.get(row).get(4);
+        field.get(row).set(0, voidPiece);
+        field.get(row).set(4, voidPiece);
+        field.get(row).set(3, rc);
+        field.get(row).set(2, kc);
+        color = Main.opponent(color);
+        return true;
+    }
+    public boolean castling7() {
+        int row = (currentPlayerColor() == Main.WHITE) ? 0 : 7;
+        if (! (field.get(row).get(4) instanceof King && field.get(row).get(7) instanceof Rook)) return false;
+        if (! (field.get(row).get(4).getColor() == field.get(row).get(7).getColor())) return false;
+        if (! field.get(row).get(7).canMove(row, 7, row, 5, field, voidPiece)) return false;
+        Piece rc = field.get(row).get(7);
+        Piece kc = field.get(row).get(4);
+        field.get(row).set(7, voidPiece);
+        field.get(row).set(4, voidPiece);
+        field.get(row).set(5, rc);
+        field.get(row).set(6, kc);
+        color = Main.opponent(color);
+        return true;
+    }
+
+    public boolean isCheck(int color) {
+        int[] coords = findKing(color);
+        if (is_under_attack(coords[0], coords[1], Main.opponent(color))) return true;
+        return false;
+    }
+
+    public int[] findKing(int color) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (field.get(i).get(j).getColor() == color && field.get(i).get(j) instanceof King) return new int[] {i, j};
+            }
+        }
+        return new int[] {};
+    }
+
+    public boolean isCheckmate(int color) {
+        if (!isCheck(color)) {
+            return false; // Если король не находится под шахом, то нет матовой позиции
+        }
+        int[] coords = findKing(color);
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (!field.get(i).get(j).equals(voidPiece) && field.get(i).get(j).getColor() == color) {
+                    Piece piece = field.get(i).get(j);
+                    for (int x = 0; x < 8; x++) {
+                        for (int y = 0; y < 8; y++) {
+                            if (piece.canMove(i, j, x, y, field, voidPiece)) {
+                                // Попробуйте сделать ход и проверить, остается ли король под шахом
+                                Piece targetPiece = field.get(x).get(y);
+                                field.get(x).set(y, piece);
+                                field.get(i).set(j, voidPiece);
+                                boolean stillInCheck = is_under_attack(coords[0], coords[1], Main.opponent(color));
+
+                                // Вернуть фигуры на место
+                                field.get(i).set(j, piece);
+                                field.get(x).set(y, targetPiece);
+
+                                if (!stillInCheck) {
+                                    System.out.println(i + " " + j + " " + x + " " + y);
+                                    return false; // Найден ход, который убирает шах
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return true; // Если нет возможных ходов для защиты короля, то это мат
     }
 
     public boolean is_under_attack(int row, int col, int color) {

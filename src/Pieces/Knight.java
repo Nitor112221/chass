@@ -17,6 +17,7 @@ public class Knight extends Piece {
 
     @Override
     public boolean canMove(int row, int col, int row1, int col1, ArrayList<ArrayList<Piece>> field, Piece voidPiece) {
+        if (! (0 <= row && row < 8 && 0 <= col && col < 8 && 0 <= row1 && row1 < 8 && 0 <= col1 && col1 < 8)) return false;
         if (!field.get(row1).get(col1).equals(voidPiece)) return false;
         if (Math.abs(col - col1) * Math.abs(row - row1) == 2 && row1 != row && col1 != col) return true;
         return false;
